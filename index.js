@@ -6,7 +6,7 @@ const config = {
         default: 'arcade',
         arcade: {
             gravity: { y: 0 },
-            debug: false // Changez à true pour voir les collisions
+            debug: true
         }
     },
     scene: {
@@ -27,14 +27,12 @@ function preload() {
     this.load.image('player', 'assets/player.png');
     this.load.image('flame', 'assets/flame.png');
     this.load.image('enemy', 'assets/enemy.png');
-    this.load.image('background', 'assets/background.png'); // Charger l'image de fond
+    this.load.image('background', 'assets/background.png');
 }
 
 function create() {
-    // Ajouter l'arrière-plan
     this.add.image(0, 0, 'background').setOrigin(0);
 
-    // Générer les ennemis
     enemies = this.physics.add.group({
         key: 'enemy',
         repeat: 11,
@@ -44,12 +42,10 @@ function create() {
         enemy.setBounceY(Phaser.Math.FloatBetween(0.4, 0.8));
     });
 
-    // Ajouter le joueur comme sprite animé
     player = this.physics.add.sprite(100, 450, 'player');
-    player.setScale(0.5); // Redimensionner le joueur
+    player.setScale(0.5);
     player.setCollideWorldBounds(true);
 
-    // Définir les animations du joueur
     this.anims.create({
         key: 'run',
         frames: this.anims.generateFrameNumbers('player', { start: 0, end: 7 }),
@@ -57,37 +53,28 @@ function create() {
         repeat: -1
     });
 
-    // Gérer les entrées clavier
     cursors = this.input.keyboard.createCursorKeys();
-
-    // Gérer les collisions
     this.physics.add.collider(player, enemies, hitEnemy, null, this);
-
-    // Afficher le score
     scoreText = this.add.text(16, 16, 'Score: 0', { fontSize: '32px', fill: '#fff' });
+    addMenu(this);
 }
 
-
-
 function update() {
-    // Déplacer le joueur
     if (cursors.left.isDown) {
         player.setVelocityX(-160);
         player.anims.play('run', true);
-        player.flipX = true; // Pour faire face à gauche
+        player.flipX = true;
     } else if (cursors.right.isDown) {
         player.setVelocityX(160);
         player.anims.play('run', true);
-        player.flipX = false; // Pour faire face à droite
+        player.flipX = false;
     } else {
         player.setVelocityX(0);
         player.anims.stop('run');
-        player.setTexture('player', 0); // Afficher la frame par défaut
+        player.setTexture('player', 0);
     }
-
-    // Tirer des flammes
     if (cursors.space.isDown) {
-        shootFlame();
+        shootFlame.call(this);
     }
 }
 
@@ -109,3 +96,27 @@ function hitEnemy(player, enemy) {
     player.setTint(0xff0000);
     gameOver = true;
 }
+
+function addMenu(scene) {
+    const menuText = scene.add.text(100, 100, 'Menu', { fontSize: '32px', fill: '#fff' });
+
+    menuText.setInteractive();
+    menuText.on('pointerdown', toggleMenuVisibility);
+
+    const option1 = scene.add.text(100, 150, 'recommencer', { fontSize: '24px', fill: '#fff' }).setAlpha(0);
+    const option2 = scene.add.text(100, 200, 'classement', { fontSize: '24px', fill: '#fff' }).setAlpha(0);
+    const option3 = scene.add.text(100, 250, 'quitter', { fontSize: '24px', fill: '#fff' }).setAlpha(0);
+
+    function toggleMenuVisibility() {
+        if (option1.alpha === 0) {
+            option1.setAlpha(1);
+            option2.setAlpha(1);
+            option3.setAlpha(1);
+        } else {
+            option1.setAlpha(0);
+            option2.setAlpha(0);
+            option3.setAlpha(0);
+        }
+    }
+}
+
